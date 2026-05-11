@@ -6,6 +6,8 @@ import compression from "compression";
 import hpp from "hpp";
 
 import routes from "./routes";
+import { env } from "./config/env";
+
 import {
   requestLogger,
   responseLogger,
@@ -28,7 +30,7 @@ app.use(
 
 app.use(
   cors({
-    origin: ["http://localhost:5173"],
+    origin: [env.CLIENT_URL],
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -36,40 +38,30 @@ app.use(
 );
 
 app.use(hpp());
-
 app.use(compression());
 
-app.use(
-  express.json({
-    limit: "10kb",
-  }),
-);
+app.use(express.json({ limit: "10kb" }));
+app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 
 app.use(requestLogger);
 app.use(responseLogger);
 
 app.use(
-  express.urlencoded({
-    extended: true,
-    limit: "10kb",
+  rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+      success: false,
+
+      message: "Too many requests. Please try again later.",
+    },
   }),
 );
 
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: {
-    success: false,
-    message: "Too many requests. Please try again later.",
-  },
-});
-
-app.use(limiter);
-
 app.get("/health", (_req, res) => {
-  return res.status(200).json({
+  res.status(200).json({
     success: true,
     message: "Server healthy",
   });
@@ -79,7 +71,7 @@ app.use("/api", routes);
 
 app.use(notFoundMiddleware);
 
-const PORT = process.env.PORT || 3000;
+const PORT = env.PORT;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
