@@ -1,0 +1,191 @@
+name: CI and PR Actions
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    outputs:
+      branch_status: ${{ steps.branch.outputs.status }}
+      lint_status: ${{ steps.lint.outputs.status }}
+      build_status: ${{ steps.build.outputs.status }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: npm ci
+
+      - name: Validate branch name
+        id: branch
+        run: |
+          if [[ "${{ github.head_ref }}" =~ ^(feat|fix|hotfix|ref)/ ]]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "status=failed" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Lint Check
+        id: lint
+        run: |
+          if npm run lint; then
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "status=failed" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Build Check
+        id: build
+        run: |
+          if npm run build; then
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "status=failed" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Final validation gate
+        run: |
+          echo "Branch: ${{ steps.branch.outputs.status }}"
+          echo "Lint: ${{ steps.lint.outputs.status }}"
+          echo "Build: ${{ steps.build.outputs.status }}"
+      
+          if [[ "${{ steps.branch.outputs.status }}" == "failed" ]] || \
+            [[ "${{ steps.lint.outputs.status }}" == "failed" ]] || \
+            [[ "${{ steps.build.outputs.status }}" == "failed" ]]; 
+          then
+              echo "❌ Validation failed"
+              exit 1
+          fi
+      
+                echo "✅ All checks passed"
+  pr-comment:
+    if: always() && github.event_name == 'pull_request'
+    needs: validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Add / Update PR comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = "${{ needs.validate.result }}";
+
+            const branch = "${{ needs.validate.outputs.branch_status }}";
+            const lint = "${{ needs.validate.outputs.lint_status }}";
+            const build = "${{ needs.validate.outputs.build_status }}";
+
+            const recommendations = [];
+
+            if (branch === "failed") {
+              recommendations.push("🔹 Branch name must follow feat/*, fix/*, hotfix/*, ref/*");
+            }
+
+            if (lint === "failed") {
+              recommendations.push("🔹 Fix ESLint errors using `npm run lint`");
+            }
+
+            if (build === "failed") {
+              recommendations.push("🔹 Build failed: check TypeScript or dependencies");
+            }
+
+            if (recommendations.length === 0) {
+              recommendations.push("🎉 Everything looks good! Ready to merge.");
+            }
+
+            const body = [
+              `## 🚀 PR Validation Report - ${status === "success" ? "✅ Success" : "❌ Failed"}`,
+              "",
+              `🌿 Branch Naming: ${branch === "success" ? "✅ Success" : "❌ Failed"}`,
+              `🧹 Lint: ${lint === "success" ? "✅ Success" : "❌ Failed"}`,
+              `🏗️ Build: ${build === "success" ? "✅ Success" : "❌ Failed"}`,
+              "",
+              "## 💡 Recommendations",
+              "",
+              ...recommendations,
+              "",
+              "---",
+              "",
+              "⚠️ Auto-generated report. Do not edit."
+            ].join("\n");
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find(c =>
+              c.body.includes("PR Validation Report")
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body
+              });
+            }
+
+
+  assign-review:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Assign PR author + request review
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issue_number = pr.number;
+            
+            const reviewers = [
+              "ManagerVishwaLabs",
+              "SanjaikumaranVishwaLabs"
+            ];
+            
+            await github.rest.issues.addAssignees({
+              owner,
+              repo,
+              issue_number,
+              assignees: [pr.user.login]
+            });
+
+            const filteredReviewers = reviewers.filter(
+              reviewer => reviewer.toLowerCase() !== pr.user.login.toLowerCase()
+            );
+            
+            if (filteredReviewers.length > 0) {
+              await github.rest.pulls.requestReviewers({
+                owner,
+                repo,
+                pull_number: issue_number,
+                reviewers: filteredReviewers
+              });
+            } else {
+              console.log("Skipping review request: PR author is reviewer");
+            }
