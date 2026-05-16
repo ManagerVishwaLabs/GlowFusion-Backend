@@ -10,26 +10,26 @@ class AuthValidator {
     const { username, password } = body;
 
     if (!username) {
-      return "GF0010001";
+      return "GF0020001";
     }
 
     if (typeof username !== "string") {
-      return "GF0010002";
+      return "GF0020002";
     }
 
     if (username.trim().length < 3) {
-      return "GF0010003";
+      return "GF0020003";
     }
     if (!password) {
-      return "GF0010004";
+      return "GF0020004";
     }
 
     if (typeof password !== "string") {
-      return "GF0010005";
+      return "GF0020005";
     }
 
     if (password.trim().length < 4) {
-      return "GF0010006";
+      return "GF0020006";
     }
   }
 }
