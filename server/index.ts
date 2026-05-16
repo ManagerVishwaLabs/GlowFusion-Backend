@@ -13,6 +13,7 @@ import {
   responseLogger,
   notFoundMiddleware,
 } from "./config/middlewares";
+import connectDB from "./config/db";
 
 const app = express();
 
@@ -36,6 +37,8 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
+
+connectDB();
 
 app.use(hpp());
 app.use(compression());
