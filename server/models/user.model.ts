@@ -18,7 +18,7 @@ const UserSchema = new Schema(
     username: {
       type: String,
       required: true,
-      unique: true,
+      // unique: true,
       trim: true,
       lowercase: true,
     },
@@ -31,7 +31,7 @@ const UserSchema = new Schema(
     email: {
       type: String,
       required: true,
-      unique: true,
+      // unique: true,
       lowercase: true,
       trim: true,
     },
@@ -70,6 +70,10 @@ export type CreateUserType = Omit<
   createdAt?: Date;
   updatedAt?: Date;
 };
+
+UserSchema.index({ email: 1 }, { unique: true });
+
+UserSchema.index({ username: 1 }, { unique: true });
 
 const User = model("User", UserSchema, "users");
 

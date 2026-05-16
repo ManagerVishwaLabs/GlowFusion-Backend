@@ -1,9 +1,10 @@
 import User, { UserType, CreateUserType } from "../models/user.model";
-import companyModel, { CompanyType, CreateCompanyType } from "./company.model";
+
+import Company, { CompanyType, CreateCompanyType } from "./company.model";
 
 export const models = {
   User,
-  companyModel,
+  Company,
 };
 
 export interface ModelRegistry {
@@ -11,6 +12,7 @@ export interface ModelRegistry {
     schema: UserType;
     create: CreateUserType;
   };
+
   Company: {
     schema: CompanyType;
     create: CreateCompanyType;

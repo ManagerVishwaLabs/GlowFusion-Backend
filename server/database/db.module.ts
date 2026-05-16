@@ -6,6 +6,8 @@ import mongoose, {
   QueryOptions,
   UpdateQuery,
   ProjectionFields,
+  SortOrder,
+  ProjectionType,
 } from "mongoose";
 
 import { DBResponse } from "./db.types";
@@ -17,24 +19,33 @@ interface UpdateOptions extends QueryOptions {
   upsert?: boolean;
 }
 
-interface FindOptions extends QueryOptions {
-  sort?: any;
+interface FindOptions<TSchema> extends QueryOptions {
+  sort?: Record<string, SortOrder>;
+
   limit?: number;
+
   skip?: number;
-  select?: any;
+
+  select?: ProjectionType<TSchema>;
 }
 
-class ModelWrapper<
-  TSchema extends Record<string, any>,
-  TCreate extends Record<string, any>,
-> {
+class ModelWrapper<TSchema extends object, TCreate extends Partial<TSchema>> {
   constructor(private readonly model: Model<TSchema>) {}
 
-  private handleError(error: any): DBResponse<null> {
+  private handleError(error: unknown): DBResponse<null> {
     console.log(`[DB Module] Error:`, error);
 
-    if (error?.code === 11000) {
-      const field = Object.keys(error.keyPattern || {})[0];
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === 11000
+    ) {
+      const duplicateError = error as {
+        keyPattern?: Record<string, number>;
+      };
+
+      const field = Object.keys(duplicateError.keyPattern ?? {})[0];
 
       return {
         success: false,
@@ -43,26 +54,34 @@ class ModelWrapper<
       };
     }
 
-    if (error?.name === "ValidationError") {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "name" in error &&
+      error.name === "ValidationError"
+    ) {
+      const validationError = error as Error;
+
       return {
         success: false,
-        message: error.message,
+        message: validationError.message,
         error,
       };
     }
 
     return {
       success: false,
-      message: error?.message || "Database operation failed",
+      message:
+        error instanceof Error ? error.message : "Database operation failed",
+
       error,
     };
   }
-
   async insertOne(
     insertData: TCreate,
   ): Promise<DBResponse<Doc<TSchema> | null>> {
     try {
-      const data = await this.model.create(insertData as any);
+      const data = await this.model.create(insertData);
 
       return {
         success: true,
@@ -96,7 +115,7 @@ class ModelWrapper<
   async findById(
     id: string | mongoose.Types.ObjectId,
     projection?: ProjectionFields<TSchema> | null,
-    options?: FindOptions,
+    options?: FindOptions<TSchema>,
   ): Promise<DBResponse<Doc<TSchema> | null>> {
     try {
       const data = await this.model.findById(id, projection, options);
@@ -113,7 +132,7 @@ class ModelWrapper<
   async findOne(
     filter: QueryFilter<TSchema>,
     projection?: ProjectionFields<TSchema> | null,
-    options?: FindOptions,
+    options?: FindOptions<TSchema>,
   ): Promise<DBResponse<Doc<TSchema> | null>> {
     try {
       const data = await this.model.findOne(filter, projection, options);
@@ -130,7 +149,7 @@ class ModelWrapper<
   async findByIds(
     ids: (string | mongoose.Types.ObjectId)[],
     projection?: ProjectionFields<TSchema> | null,
-    options?: FindOptions,
+    options?: FindOptions<TSchema>,
   ): Promise<DBResponse<Doc<TSchema>[] | null>> {
     try {
       const data = await this.model.find(
@@ -155,7 +174,7 @@ class ModelWrapper<
   async find(
     filter: QueryFilter<TSchema> = {},
     projection?: ProjectionFields<TSchema> | null,
-    options?: FindOptions,
+    options?: FindOptions<TSchema>,
   ): Promise<DBResponse<Doc<TSchema>[] | null>> {
     try {
       const query = this.model.find(filter);
@@ -269,7 +288,7 @@ class ModelWrapper<
         },
       };
     } catch (error) {
-      return this.handleError(error) as DBResponse<any>;
+      return this.handleError(error);
     }
   }
 
@@ -305,7 +324,7 @@ class ModelWrapper<
         },
       };
     } catch (error) {
-      return this.handleError(error) as DBResponse<any>;
+      return this.handleError(error);
     }
   }
 
@@ -363,7 +382,7 @@ class ModelWrapper<
         },
       };
     } catch (error) {
-      return this.handleError(error) as DBResponse<any>;
+      return this.handleError(error);
     }
   }
 
@@ -384,7 +403,7 @@ class ModelWrapper<
         },
       };
     } catch (error) {
-      return this.handleError(error) as DBResponse<any>;
+      return this.handleError(error);
     }
   }
 
@@ -438,7 +457,7 @@ class ModelWrapper<
         },
       };
     } catch (error) {
-      return this.handleError(error) as DBResponse<any>;
+      return this.handleError(error);
     }
   }
 
@@ -458,7 +477,7 @@ class ModelWrapper<
         },
       };
     } catch (error) {
-      return this.handleError(error) as DBResponse<any>;
+      return this.handleError(error);
     }
   }
 
@@ -492,7 +511,7 @@ class ModelWrapper<
     }
   }
 
-  async aggregate<TResult = any>(
+  async aggregate<TResult>(
     pipeline: PipelineStage[],
   ): Promise<DBResponse<TResult[] | null>> {
     try {
@@ -513,7 +532,7 @@ class DBModule {
     return new ModelWrapper<
       ModelRegistry[K]["schema"],
       ModelRegistry[K]["create"]
-    >(models[modelName as keyof typeof models] as any);
+    >(models[modelName] as unknown as Model<ModelRegistry[K]["schema"]>);
   }
 }
 

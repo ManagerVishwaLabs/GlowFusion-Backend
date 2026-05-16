@@ -4,6 +4,7 @@ const connectDB = async (): Promise<void> => {
   try {
     const conn = await mongoose.connect(process.env.MONGODB_URI as string);
 
+    await mongoose.syncIndexes();
     console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
     console.error("MongoDB connection failed:", error);
