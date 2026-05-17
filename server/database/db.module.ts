@@ -30,6 +30,7 @@ class ModelWrapper<TSchema extends object> {
 
       return {
         success: false,
+        code: "GF0010002",
         message: `${field} already exists`,
         error,
       };
@@ -45,6 +46,7 @@ class ModelWrapper<TSchema extends object> {
 
       return {
         success: false,
+        code: "GF0010004",
         message: validationError.message,
         error,
       };
@@ -52,6 +54,7 @@ class ModelWrapper<TSchema extends object> {
 
     return {
       success: false,
+      code: "GF0010001",
       message:
         error instanceof Error ? error.message : "Database operation failed",
 
@@ -135,7 +138,7 @@ class ModelWrapper<TSchema extends object> {
 
       return {
         success: true,
-        data: data,
+        data,
       };
     } catch (error) {
       return this.handleError(error);
@@ -540,7 +543,6 @@ class ModelWrapper<TSchema extends object> {
     }
   }
 }
-
 class DBModule {
   static createModel<K extends keyof ModelRegistry>(modelName: K) {
     return new ModelWrapper<ModelRegistry[K]>(

@@ -99,6 +99,63 @@ class AuthController {
       };
     }
   }
+  public async login({
+    body,
+  }: {
+    body: {
+      username: string;
+      password: string;
+    };
+  }): Promise<ControllerResponse> {
+    try {
+      const { username, password } = body;
+
+      const response = await UserLibrary.getUserByUsername(username);
+
+      if (!response.success || !response.data) {
+        return {
+          success: false,
+          code: "GF0020008",
+        };
+      }
+
+      const user = response.data;
+
+      const pepper = env.PASSWORD_PEPPER;
+
+      if (!user.passwordHash) {
+        return {
+          success: false,
+          code: "GF0020009",
+        };
+      }
+      const isPasswordValid = await bcrypt.compare(
+        password + pepper,
+        user.passwordHash,
+      );
+
+      if (!isPasswordValid) {
+        return {
+          success: false,
+          code: "GF0020007",
+        };
+      }
+
+      return {
+        success: true,
+        data: {
+          user: user,
+        },
+      };
+    } catch (error) {
+      console.log(`[AUTH CONTROLLER] error: ${error}`);
+
+      return {
+        success: false,
+        code: "GF0020009",
+      };
+    }
+  }
 }
 
 export default new AuthController();

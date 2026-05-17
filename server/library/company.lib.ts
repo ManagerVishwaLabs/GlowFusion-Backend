@@ -63,7 +63,7 @@ class CompanyLibrary {
 
     return {
       success: true,
-      data: foundCompany.data,
+      data: foundCompany,
     };
   }
 

@@ -43,7 +43,6 @@ const UserSchema = new Schema(
     },
     passwordHash: {
       type: String,
-      select: false,
     },
     userRole: {
       type: String,

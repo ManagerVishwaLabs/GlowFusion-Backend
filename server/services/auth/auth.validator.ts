@@ -121,6 +121,40 @@ class AuthValidator {
       return "GF0030014";
     }
   }
+  public validateLogin({
+    body,
+  }: {
+    body: {
+      username: string;
+      password: string;
+    };
+  }): ValidatorResponse {
+    const { username, password } = body;
+
+    if (!username) {
+      return "GF0030029";
+    }
+
+    if (typeof username !== "string") {
+      return "GF0030030";
+    }
+
+    if (username.trim().length < 3) {
+      return "GF0030031";
+    }
+
+    if (!password) {
+      return "GF0030012";
+    }
+
+    if (typeof password !== "string") {
+      return "GF0030013";
+    }
+
+    if (password.trim().length < 6) {
+      return "GF0030014";
+    }
+  }
 }
 
 export default new AuthValidator();

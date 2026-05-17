@@ -4,6 +4,7 @@ import { DocumentId, LibraryResponse } from "../utils/types";
 import DBModule from "../database/db.module";
 
 import { UserType } from "../database/models/user.model";
+import { Doc } from "../database/db.types";
 
 class UserLibrary {
   private userModel;
@@ -46,14 +47,39 @@ class UserLibrary {
     };
   }
 
-  public async getUserByUsername(username: string): Promise<LibraryResponse> {
+  public async getUserByUsername(
+    username: string,
+  ): Promise<LibraryResponse<Doc<UserType> | null>> {
     const user = await this.userModel.findOne({
       username,
     });
 
+    if (user.success) {
+      return {
+        success: true,
+        data: user.data,
+      };
+    }
     return {
-      success: true,
-      data: user,
+      success: false,
+      code: user.code,
+    };
+  }
+
+  public async getPasswordByUsername(
+    username: string,
+  ): Promise<LibraryResponse<Doc<UserType> | null>> {
+    const user = await this.userModel.findOne({ username });
+    if (user.success) {
+      return {
+        success: true,
+        data: user.data,
+      };
+    }
+
+    return {
+      success: false,
+      code: user.code,
     };
   }
 

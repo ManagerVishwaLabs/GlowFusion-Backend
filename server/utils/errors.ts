@@ -12,6 +12,10 @@ const errors = {
   GF0020003: "Username already exists",
   GF0020004: "Registration failed",
   GF0020005: "Registration successful",
+  GF0020006: "Login successful",
+  GF0020007: "Invalid credentials",
+  GF0020008: "User not found",
+  GF0020009: "Login failed",
 
   /* -------- USER VALIDATION -------- */
   GF0030001: "First name is required",
