@@ -1,4 +1,4 @@
-import { Schema, Document, InferSchemaType, model } from "mongoose";
+import { Document, InferSchemaType, Schema, model } from "mongoose";
 
 export interface ICompany extends Document {
   name: string;

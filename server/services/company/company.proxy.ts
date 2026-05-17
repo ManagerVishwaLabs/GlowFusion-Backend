@@ -1,14 +1,14 @@
 import { Request, Response } from "express";
 
-import UserValidator from "./user.validator";
-import UserController from "./user.controller";
+import CompanyValidator from "./company.validator";
+import CompanyController from "./company.controller";
 
 import { ResponseHandler } from "../../core/response.middleware";
-import { Company, UserIdParams, Username } from "./user.types";
+import { CompanyIdParams, CompanyIds, CompanyParams } from "./company.types";
 
-class UserProxy {
-  public async createUser(req: Request, res: Response): Promise<void> {
-    const validationResponse = UserValidator.validateCreateUser({
+class CompanyProxy {
+  public async createCompany(req: Request, res: Response): Promise<void> {
+    const validationResponse = CompanyValidator.validateCreateCompany({
       body: req.body,
     });
 
@@ -21,7 +21,7 @@ class UserProxy {
       return;
     }
 
-    const controllerResponse = await UserController.createUser(req.body);
+    const controllerResponse = await CompanyController.createCompany(req.body);
 
     ResponseHandler.send({
       response: controllerResponse,
@@ -29,37 +29,13 @@ class UserProxy {
     });
   }
 
-  public async getUserById(
-    req: Request<UserIdParams>,
+  public async getCompanyById(
+    req: Request<CompanyIdParams>,
     res: Response,
   ): Promise<void> {
-    const { userId } = req.params;
+    const { companyId } = req.params;
 
-    const validationResponse = UserValidator.validateUserId(userId);
-
-    if (validationResponse) {
-      ResponseHandler.send({
-        response: validationResponse,
-        res,
-      });
-
-      return;
-    }
-
-    const controllerResponse = await UserController.getUserById(
-      userId as string,
-    );
-
-    ResponseHandler.send({
-      response: controllerResponse,
-      res,
-    });
-  }
-
-  public async getUsersByIds(req: Request, res: Response): Promise<void> {
-    const { userIds } = req.body;
-
-    const validationResponse = UserValidator.validateUserIds(userIds);
+    const validationResponse = CompanyValidator.validateCompanyId(companyId);
 
     if (validationResponse) {
       ResponseHandler.send({
@@ -70,7 +46,8 @@ class UserProxy {
       return;
     }
 
-    const controllerResponse = await UserController.getUsersByIds(userIds);
+    const controllerResponse =
+      await CompanyController.getCompanyById(companyId);
 
     ResponseHandler.send({
       response: controllerResponse,
@@ -78,13 +55,13 @@ class UserProxy {
     });
   }
 
-  public async getUserByUsername(
-    req: Request<Username>,
+  public async getCompaniesByIds(
+    req: Request<object, object, CompanyIds>,
     res: Response,
   ): Promise<void> {
-    const { username } = req.params;
+    const { companyIds } = req.body;
 
-    const validationResponse = UserValidator.validateUsername(username);
+    const validationResponse = CompanyValidator.validateCompanyIds(companyIds);
 
     if (validationResponse) {
       ResponseHandler.send({
@@ -95,7 +72,8 @@ class UserProxy {
       return;
     }
 
-    const controllerResponse = await UserController.getUserByUsername(username);
+    const controllerResponse =
+      await CompanyController.getCompaniesByIds(companyIds);
 
     ResponseHandler.send({
       response: controllerResponse,
@@ -103,13 +81,13 @@ class UserProxy {
     });
   }
 
-  public async getUsersByCompany(
-    req: Request<Company>,
+  public async getCompanyByCompany(
+    req: Request<CompanyParams>,
     res: Response,
   ): Promise<void> {
     const { company } = req.params;
 
-    const validationResponse = UserValidator.validateCompany(company);
+    const validationResponse = CompanyValidator.validateCompany(company);
 
     if (validationResponse) {
       ResponseHandler.send({
@@ -120,7 +98,8 @@ class UserProxy {
       return;
     }
 
-    const controllerResponse = await UserController.getUsersByCompany(company);
+    const controllerResponse =
+      await CompanyController.getCompanyByCompany(company);
 
     ResponseHandler.send({
       response: controllerResponse,
@@ -128,24 +107,24 @@ class UserProxy {
     });
   }
 
-  public async updateUserById(
-    req: Request<UserIdParams>,
+  public async updateCompanyById(
+    req: Request<CompanyIdParams>,
     res: Response,
   ): Promise<void> {
-    const { userId } = req.params;
+    const { companyId } = req.params;
 
-    const userIdValidation = UserValidator.validateUserId(userId);
+    const idValidation = CompanyValidator.validateCompanyId(companyId);
 
-    if (userIdValidation) {
+    if (idValidation) {
       ResponseHandler.send({
-        response: userIdValidation,
+        response: idValidation,
         res,
       });
 
       return;
     }
 
-    const bodyValidation = UserValidator.validateUpdateUser({
+    const bodyValidation = CompanyValidator.validateUpdateCompany({
       body: req.body,
     });
 
@@ -158,8 +137,8 @@ class UserProxy {
       return;
     }
 
-    const controllerResponse = await UserController.updateUserById(
-      userId as string,
+    const controllerResponse = await CompanyController.updateCompanyById(
+      companyId,
       req.body,
     );
 
@@ -169,10 +148,13 @@ class UserProxy {
     });
   }
 
-  public async updateUsersByIds(req: Request, res: Response): Promise<void> {
-    const { userIds, updateData } = req.body;
+  public async updateCompaniesByIds(
+    req: Request,
+    res: Response,
+  ): Promise<void> {
+    const { companyIds, updateData } = req.body;
 
-    const idsValidation = UserValidator.validateUserIds(userIds);
+    const idsValidation = CompanyValidator.validateCompanyIds(companyIds);
 
     if (idsValidation) {
       ResponseHandler.send({
@@ -183,7 +165,7 @@ class UserProxy {
       return;
     }
 
-    const bodyValidation = UserValidator.validateUpdateUser({
+    const bodyValidation = CompanyValidator.validateUpdateCompany({
       body: updateData,
     });
 
@@ -196,8 +178,8 @@ class UserProxy {
       return;
     }
 
-    const controllerResponse = await UserController.updateUsersByIds(
-      userIds,
+    const controllerResponse = await CompanyController.updateCompaniesByIds(
+      companyIds,
       updateData,
     );
 
@@ -207,10 +189,10 @@ class UserProxy {
     });
   }
 
-  public async updateUser(req: Request, res: Response): Promise<void> {
+  public async updateCompany(req: Request, res: Response): Promise<void> {
     const { filterConditions, updateData } = req.body;
 
-    const filterValidation = UserValidator.validateFilter(filterConditions);
+    const filterValidation = CompanyValidator.validateFilter(filterConditions);
 
     if (filterValidation) {
       ResponseHandler.send({
@@ -221,7 +203,7 @@ class UserProxy {
       return;
     }
 
-    const bodyValidation = UserValidator.validateUpdateUser({
+    const bodyValidation = CompanyValidator.validateUpdateCompany({
       body: updateData,
     });
 
@@ -234,7 +216,7 @@ class UserProxy {
       return;
     }
 
-    const controllerResponse = await UserController.updateUser(
+    const controllerResponse = await CompanyController.updateCompany(
       filterConditions,
       updateData,
     );
@@ -245,10 +227,10 @@ class UserProxy {
     });
   }
 
-  public async updateUsers(req: Request, res: Response): Promise<void> {
+  public async updateCompanies(req: Request, res: Response): Promise<void> {
     const { filterConditions, updateData } = req.body;
 
-    const filterValidation = UserValidator.validateFilter(filterConditions);
+    const filterValidation = CompanyValidator.validateFilter(filterConditions);
 
     if (filterValidation) {
       ResponseHandler.send({
@@ -259,7 +241,7 @@ class UserProxy {
       return;
     }
 
-    const bodyValidation = UserValidator.validateUpdateUser({
+    const bodyValidation = CompanyValidator.validateUpdateCompany({
       body: updateData,
     });
 
@@ -272,7 +254,7 @@ class UserProxy {
       return;
     }
 
-    const controllerResponse = await UserController.updateUsers(
+    const controllerResponse = await CompanyController.updateCompanies(
       filterConditions,
       updateData,
     );
@@ -283,59 +265,13 @@ class UserProxy {
     });
   }
 
-  public async deleteUserById(
-    req: Request<UserIdParams>,
+  public async deleteCompanyById(
+    req: Request<CompanyIdParams>,
     res: Response,
   ): Promise<void> {
-    const { userId } = req.params;
+    const { companyId } = req.params;
 
-    const validationResponse = UserValidator.validateUserId(userId);
-
-    if (validationResponse) {
-      ResponseHandler.send({
-        response: validationResponse,
-        res,
-      });
-
-      return;
-    }
-
-    const controllerResponse = await UserController.deleteUserById(
-      userId as string,
-    );
-
-    ResponseHandler.send({
-      response: controllerResponse,
-      res,
-    });
-  }
-
-  public async deleteUsersByIds(req: Request, res: Response): Promise<void> {
-    const { userIds } = req.body;
-
-    const validationResponse = UserValidator.validateUserIds(userIds);
-
-    if (validationResponse) {
-      ResponseHandler.send({
-        response: validationResponse,
-        res,
-      });
-
-      return;
-    }
-
-    const controllerResponse = await UserController.deleteUsersByIds(userIds);
-
-    ResponseHandler.send({
-      response: controllerResponse,
-      res,
-    });
-  }
-
-  public async deleteUser(req: Request, res: Response): Promise<void> {
-    const { filterConditions } = req.body;
-
-    const validationResponse = UserValidator.validateFilter(filterConditions);
+    const validationResponse = CompanyValidator.validateCompanyId(companyId);
 
     if (validationResponse) {
       ResponseHandler.send({
@@ -347,7 +283,7 @@ class UserProxy {
     }
 
     const controllerResponse =
-      await UserController.deleteUser(filterConditions);
+      await CompanyController.deleteCompanyById(companyId);
 
     ResponseHandler.send({
       response: controllerResponse,
@@ -355,36 +291,13 @@ class UserProxy {
     });
   }
 
-  public async deleteUsers(req: Request, res: Response): Promise<void> {
-    const { filterConditions } = req.body;
-
-    const validationResponse = UserValidator.validateFilter(filterConditions);
-
-    if (validationResponse) {
-      ResponseHandler.send({
-        response: validationResponse,
-        res,
-      });
-
-      return;
-    }
-
-    const controllerResponse =
-      await UserController.deleteUsers(filterConditions);
-
-    ResponseHandler.send({
-      response: controllerResponse,
-      res,
-    });
-  }
-
-  public async deleteUserByUsername(
-    req: Request<Username>,
+  public async deleteCompaniesByIds(
+    req: Request,
     res: Response,
   ): Promise<void> {
-    const { username } = req.params;
+    const { companyIds } = req.body;
 
-    const validationResponse = UserValidator.validateUsername(username);
+    const validationResponse = CompanyValidator.validateCompanyIds(companyIds);
 
     if (validationResponse) {
       ResponseHandler.send({
@@ -396,7 +309,81 @@ class UserProxy {
     }
 
     const controllerResponse =
-      await UserController.deleteUserByUsername(username);
+      await CompanyController.deleteCompaniesByIds(companyIds);
+
+    ResponseHandler.send({
+      response: controllerResponse,
+      res,
+    });
+  }
+
+  public async deleteCompany(req: Request, res: Response): Promise<void> {
+    const { filterConditions } = req.body;
+
+    const validationResponse =
+      CompanyValidator.validateFilter(filterConditions);
+
+    if (validationResponse) {
+      ResponseHandler.send({
+        response: validationResponse,
+        res,
+      });
+
+      return;
+    }
+
+    const controllerResponse =
+      await CompanyController.deleteCompany(filterConditions);
+
+    ResponseHandler.send({
+      response: controllerResponse,
+      res,
+    });
+  }
+
+  public async deleteCompanies(req: Request, res: Response): Promise<void> {
+    const { filterConditions } = req.body;
+
+    const validationResponse =
+      CompanyValidator.validateFilter(filterConditions);
+
+    if (validationResponse) {
+      ResponseHandler.send({
+        response: validationResponse,
+        res,
+      });
+
+      return;
+    }
+
+    const controllerResponse =
+      await CompanyController.deleteCompanies(filterConditions);
+
+    ResponseHandler.send({
+      response: controllerResponse,
+      res,
+    });
+  }
+
+  public async deleteCompanyByCompany(
+    req: Request<CompanyParams>,
+    res: Response,
+  ): Promise<void> {
+    const { company } = req.params;
+
+    const validationResponse = CompanyValidator.validateCompany(company);
+
+    if (validationResponse) {
+      ResponseHandler.send({
+        response: validationResponse,
+        res,
+      });
+
+      return;
+    }
+
+    const controllerResponse =
+      await CompanyController.deleteCompanyByCompany(company);
 
     ResponseHandler.send({
       response: controllerResponse,
@@ -405,4 +392,4 @@ class UserProxy {
   }
 }
 
-export default new UserProxy();
+export default new CompanyProxy();

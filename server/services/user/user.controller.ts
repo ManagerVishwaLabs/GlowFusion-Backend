@@ -1,5 +1,5 @@
 import { QueryFilter } from "mongoose";
-import { ControllerResponse,DocumentId } from "../../core/types";
+import { ControllerResponse, DocumentId } from "../../core/types";
 
 import DBModule from "../../database/db.module";
 
@@ -29,7 +29,9 @@ class UserController {
       data: user,
     };
   }
-  public async getUsersByIds(userIds: DocumentId[]): Promise<ControllerResponse> {
+  public async getUsersByIds(
+    userIds: DocumentId[],
+  ): Promise<ControllerResponse> {
     const users = await this.userModel.findByIds(userIds);
 
     return {
@@ -111,7 +113,9 @@ class UserController {
     };
   }
 
-  public async deleteUsersByIds(userIds: DocumentId[]): Promise<ControllerResponse> {
+  public async deleteUsersByIds(
+    userIds: DocumentId[],
+  ): Promise<ControllerResponse> {
     const user = await this.userModel.deleteByIds(userIds);
 
     return {
@@ -119,7 +123,9 @@ class UserController {
     };
   }
 
-  public async deleteUser(filterConditions: QueryFilter<CreateUserType>): Promise<ControllerResponse> {
+  public async deleteUser(
+    filterConditions: QueryFilter<CreateUserType>,
+  ): Promise<ControllerResponse> {
     const user = await this.userModel.deleteOne(filterConditions);
 
     return {
@@ -127,7 +133,9 @@ class UserController {
     };
   }
 
-    public async deleteUsers(filterConditions: QueryFilter<CreateUserType>): Promise<ControllerResponse> {
+  public async deleteUsers(
+    filterConditions: QueryFilter<CreateUserType>,
+  ): Promise<ControllerResponse> {
     const user = await this.userModel.deleteMany(filterConditions);
 
     return {

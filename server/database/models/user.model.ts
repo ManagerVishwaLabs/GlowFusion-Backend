@@ -1,4 +1,4 @@
-import { Schema, InferSchemaType, model } from "mongoose";
+import { InferSchemaType, Schema, model } from "mongoose";
 
 import { UserRole } from "../../utils/commonConstants";
 

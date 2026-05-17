@@ -1,4 +1,4 @@
-import User, { UserType, CreateUserType } from "../models/user.model";
+import User, { CreateUserType, UserType } from "../models/user.model";
 
 import Company, { CompanyType, CreateCompanyType } from "./company.model";
 

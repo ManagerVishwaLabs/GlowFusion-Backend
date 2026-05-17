@@ -1,13 +1,13 @@
 import mongoose, {
-  QueryFilter,
   Model,
   PipelineStage,
+  ProjectionFields,
+  QueryFilter,
   QueryOptions,
   UpdateQuery,
-  ProjectionFields,
 } from "mongoose";
 
-import { DBResponse, Doc, UpdateOptions, FindOptions } from "./db.types";
+import { DBResponse, Doc, FindOptions, UpdateOptions } from "./db.types";
 import { ModelRegistry, models } from "./models";
 
 class ModelWrapper<TSchema extends object, TCreate extends Partial<TSchema>> {

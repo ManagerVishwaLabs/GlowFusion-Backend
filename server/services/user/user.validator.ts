@@ -1,8 +1,64 @@
-import { ValidatorResponse } from "../../core/types";
-
+import { DocumentId, ValidatorResponse } from "../../core/types";
 import { CreateUserType } from "../../database/models/user.model";
+import { isEmailAddress, isObjectId } from "../../utils/helperFunctions";
 
 class UserValidator {
+  public validateUserId(userId: DocumentId): ValidatorResponse {
+    if (!userId) {
+      return "GF0030024";
+    }
+
+    if (!isObjectId(userId)) {
+      return "GF0030025";
+    }
+  }
+
+  public validateUserIds(userIds: DocumentId[]): ValidatorResponse {
+    if (!Array.isArray(userIds)) {
+      return "GF0030026";
+    }
+
+    if (userIds.length === 0) {
+      return "GF0030027";
+    }
+
+    for (const id of userIds) {
+      if (!isObjectId(id)) {
+        return "GF0030028";
+      }
+    }
+  }
+
+  public validateUsername(username: string): ValidatorResponse {
+    if (!username) {
+      return "GF0030029";
+    }
+
+    if (typeof username !== "string") {
+      return "GF0030030";
+    }
+
+    if (username.trim().length < 3) {
+      return "GF0030031";
+    }
+  }
+
+  public validateCompany(company: string): ValidatorResponse {
+    if (!company) {
+      return "GF0030032";
+    }
+
+    if (typeof company !== "string") {
+      return "GF0030033";
+    }
+  }
+
+  public validateFilter(filter: Partial<CreateUserType>): ValidatorResponse {
+    if (!filter || Object.keys(filter).length === 0) {
+      return "GF0030034";
+    }
+  }
+
   public validateCreateUser({
     body,
   }: {
@@ -30,9 +86,7 @@ class UserValidator {
       return "GF0030005";
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!emailRegex.test(email.trim())) {
+    if (!isEmailAddress(email.trim())) {
       return "GF0030006";
     }
 
@@ -74,7 +128,11 @@ class UserValidator {
   }: {
     body: Partial<CreateUserType>;
   }): ValidatorResponse {
-    const { firstName, email, username, company } = body;
+    const { firstName, email, username, company, passwordHash } = body;
+
+    if (!body || Object.keys(body).length === 0) {
+      return "GF0030035";
+    }
 
     if (firstName !== undefined) {
       if (typeof firstName !== "string") {
@@ -91,9 +149,7 @@ class UserValidator {
         return "GF0030017";
       }
 
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-      if (!emailRegex.test(email.trim())) {
+      if (!isEmailAddress(email)) {
         return "GF0030018";
       }
     }
@@ -111,6 +167,16 @@ class UserValidator {
     if (company !== undefined) {
       if (typeof company !== "string") {
         return "GF0030021";
+      }
+    }
+
+    if (passwordHash !== undefined) {
+      if (typeof passwordHash !== "string") {
+        return "GF0030022";
+      }
+
+      if (passwordHash.trim().length < 6) {
+        return "GF0030023";
       }
     }
   }
