@@ -11,7 +11,7 @@ class AuthController {
     const { username, password } = body!;
 
     if (username !== "admin" || password !== "admin") {
-      return "GF0010007";
+      return "GF0020007";
     }
 
     return {

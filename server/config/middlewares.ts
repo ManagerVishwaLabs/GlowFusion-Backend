@@ -7,6 +7,7 @@ export const requestLogger = (
 ) => {
   console.log(`[REQ] METHOD: ${req.method}, URL: ${req.url}`);
   console.log("Body:", req.body);
+  req.body = req?.body || {};
 
   next();
 };
